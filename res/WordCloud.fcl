@@ -1,0 +1,87 @@
+// AUTHOR: MORGAN REILLY
+// G00303598
+
+// Mamdani
+FUNCTION_BLOCK wordcloud
+
+	// Inputs -- Real values to fuzzify
+	VAR_INPUT
+		title : REAL;
+		headings : REAL;
+		body : REAL;
+	END_VAR
+	
+	// Output -- Real value to defuzzify
+	VAR_OUTPUT
+		score : REAL;
+	END_VAR
+	
+	// Fuzzification -- Title
+	FUZZIFY title
+		TERM poor := (0, 1) (15, 1) (50,0); 
+    	TERM good := (20, 0) (40,1) (60,1) (80,0);
+    	TERM excellent := (50, 0) (85,1) (100,1);
+	END_FUZZIFY
+	
+	// Fuzzification -- Headings
+	FUZZIFY headings
+		TERM poor := (0, 1) (22.5,0); 
+    	TERM good := (10, 0) (22.5,1)(27.5,1) (40,0);
+    	TERM excellent := (27.5, 0) (50,1);
+	END_FUZZIFY
+	
+	// Fuzzification -- Body
+	FUZZIFY body
+		TERM poor := (0, 1) (20,0); 
+    	TERM excellent := (5, 0) (25,1);
+	END_FUZZIFY
+	
+	// De-fuzzification -- Score
+	DEFUZZIFY score
+		TERM poor := (0, 1) (15, 1) (50,0); 
+    	TERM good := (20, 0) (40,1) (60,1) (80,0);
+    	TERM excellent := (50, 0) (85,1) (100,1);
+		
+		METHOD : COG;		// Useing 'Center Of Gravity' defuzzification method
+		DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+	END_DEFUZZIFY
+	
+	
+	// TODO: break this out into 3 seperate rulesets for:
+	// poor; good; excellent
+	RULEBLOCK No1
+		AND : MIN;	// Use 'min' for 'and'
+		ACT : MIN;	// Use 'min' activation method
+		ACCU : MAX;	// Use 'max' accumulation method
+		
+		// Ruleset A [POOR-GOOD] --> Start at title
+		// where title is always poor
+		RULE 1 : IF title IS poor AND headings IS poor AND body IS poor THEN score IS poor;
+		RULE 2 : IF title IS poor AND headings IS poor AND body IS excellent THEN score IS poor;
+		RULE 3 : IF title IS poor AND headings IS good AND body IS poor THEN score IS poor;
+		RULE 4 : IF title IS poor AND headings IS good AND body IS excellent THEN score IS good;
+		RULE 5 : IF title IS poor AND headings IS excellent AND body IS poor THEN score IS good;
+		RULE 6 : IF title IS poor AND headings IS excellent AND body IS excellent THEN score IS good;
+		
+		// Ruleset [GOOD] --> Start at title
+		// where title is always good
+		RULE 7 : IF title IS good AND headings IS poor AND body IS poor THEN score IS good;
+		RULE 8 : IF title IS good AND headings IS poor AND body IS excellent THEN score IS good;
+		RULE 9 : IF title IS good AND headings IS good AND body IS poor THEN score IS good;
+		RULE 10 : IF title IS good AND headings IS good AND body IS excellent THEN score IS good;
+		RULE 11 : IF title IS good AND headings IS excellent AND body IS poor THEN score IS excellent;
+		RULE 12 : IF title IS good AND headings IS excellent AND body IS excellent THEN score IS excellent;
+		
+		// Ruleset A [GOOD-EXCELLENT] --> Start at title
+		// where title is always good
+		RULE 13 : IF title IS excellent AND headings IS poor AND body IS poor THEN score IS good;
+		RULE 14 : IF title IS excellent AND headings IS poor AND body IS excellent THEN score IS good;
+		RULE 15 : IF title IS excellent AND headings IS good AND body IS poor THEN score IS excellent;
+		RULE 16 : IF title IS excellent AND headings IS good AND body IS excellent THEN score IS excellent;
+		RULE 17 : IF title IS excellent AND headings IS excellent AND body IS poor THEN score IS excellent;
+		RULE 18 : IF title IS excellent AND headings IS excellent AND body IS excellent THEN score IS excellent;	
+	END_RULEBLOCK
+	
+END_FUNCTION_BLOCK
+		
+		
