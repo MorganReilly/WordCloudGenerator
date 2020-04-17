@@ -4,17 +4,29 @@ import java.util.*;
 
 public class Node {
 	private String nodeName;
-	private List<Node> children = new ArrayList<Node>();
+	private Node parent;
+	private Map<Node, Integer> children = new HashMap<Node, Integer>();
 	private boolean visited = false;
 	private boolean goalNode;
-	private Colour colour = Colour.White;
+	private int approximateDistanceFromGoal = 0;
 
 	public Node(String name) {
 		this.nodeName = name;
 	}
 
+	public Node(String name, int goalDistance) {
+		this.nodeName = name;
+		this.approximateDistanceFromGoal = goalDistance;
+	}
+
 	public Node[] children() {
-		return (Node[]) children.toArray(new Node[children.size()]);
+		return (Node[]) children.keySet().toArray(new Node[children.size()]);
+	}
+
+	public int getDistance(Node node) {
+		if (children.get(node) == null)
+			System.out.println(this.nodeName + ": " + node.getNodeName());
+		return children.get(node);
 	}
 
 	public boolean isLeaf() {
@@ -29,8 +41,8 @@ public class Node {
 		return children.size();
 	}
 
-	public void addChildNode(Node child) {
-		children.add(child);
+	public void addChildNode(Node child, int distance) {
+		children.put(child, distance);
 	}
 
 	public void removeChild(Node child) {
@@ -53,20 +65,28 @@ public class Node {
 		this.visited = visited;
 	}
 
-	public Colour getColour() {
-		return colour;
-	}
-
-	public void colour(Colour colour) {
-		this.colour = colour;
-	}
-
 	public boolean isGoalNode() {
 		return goalNode;
 	}
 
 	public void setGoalNode(boolean goalNode) {
 		this.goalNode = goalNode;
+	}
+
+	public int getApproximateDistanceFromGoal() {
+		return approximateDistanceFromGoal;
+	}
+
+	public void setApproximateDistanceFromGoal(int approximateDistanceFromGoal) {
+		this.approximateDistanceFromGoal = approximateDistanceFromGoal;
+	}
+
+	public Node getParent() {
+		return parent;
+	}
+
+	public void setParent(Node parent) {
+		this.parent = parent;
 	}
 
 	public String toString() {

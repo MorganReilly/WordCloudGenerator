@@ -1,5 +1,12 @@
 // AUTHOR: MORGAN REILLY
 // G00303598
+// 
+// Note:
+// I had intended on making the ruleset a little more complex with
+// more TERMS for each fuzzification bloack, or more values inside them,
+// but felt it was better to keep it simple for easier to manage data.
+// The ruleset is created with a BruteForce approach, 
+// taking each node and edge into consideration.
 
 // Mamdani
 FUNCTION_BLOCK wordcloud
@@ -7,8 +14,10 @@ FUNCTION_BLOCK wordcloud
 	// Inputs -- Real values to fuzzify
 	VAR_INPUT
 		title : REAL;
-		headings : REAL;
-		body : REAL;
+		h1 : REAL;
+		h2 : REAL;
+		h3 : REAL;
+		paragraph : REAL;
 	END_VAR
 	
 	// Output -- Real value to defuzzify
@@ -18,70 +27,88 @@ FUNCTION_BLOCK wordcloud
 	
 	// Fuzzification -- Title
 	FUZZIFY title
-		TERM poor := (0, 1) (15, 1) (50,0); 
-    	TERM good := (20, 0) (40,1) (60,1) (80,0);
-    	TERM excellent := (50, 0) (85,1) (100,1);
+		TERM irrelevant := (0, 1) (20, 1) (100,0); 
+    	TERM relevant := (0, 0) (80,1) (100,1);
 	END_FUZZIFY
 	
-	// Fuzzification -- Headings
-	FUZZIFY headings
-		TERM poor := (0, 1) (22.5,0); 
-    	TERM good := (10, 0) (22.5,1)(27.5,1) (40,0);
-    	TERM excellent := (27.5, 0) (50,1);
+	// Fuzzification -- H1
+	FUZZIFY h1
+		TERM irrelevant := (0, 1) (20, 1) (70,0); 
+    	TERM relevant := (0, 0) (50,1) (70,1);
 	END_FUZZIFY
 	
-	// Fuzzification -- Body
-	FUZZIFY body
-		TERM poor := (0, 1) (20,0); 
-    	TERM excellent := (5, 0) (25,1);
+	// Fuzzification -- H2
+	FUZZIFY h2
+		TERM irrelevant := (0, 1) (20, 1) (50,0); 
+    	TERM relevant := (0, 0) (30,1) (50,1);
+	END_FUZZIFY
+	
+	// Fuzzification -- H3
+	FUZZIFY h3
+		TERM irrelevant := (0, 1) (40,0); 
+    	TERM relevant := (0, 0) (40,1);
+	END_FUZZIFY
+	
+	// Fuzzification -- Paragraph
+	FUZZIFY paragraph
+		TERM irrelevant := (0, 1) (30,0); 
+    	TERM relevant := (0, 0) (30,1);
 	END_FUZZIFY
 	
 	// De-fuzzification -- Score
 	DEFUZZIFY score
-		TERM poor := (0, 1) (15, 1) (50,0); 
-    	TERM good := (20, 0) (40,1) (60,1) (80,0);
-    	TERM excellent := (50, 0) (85,1) (100,1);
+		TERM low := (0, 0) (37.5, 1) (75,0);
+		TERM medium := (25, 0) (75,1) (125,0);  
+    	TERM high := (75, 0) (112.5,1) (150,0);  
 		
 		METHOD : COG;		// Useing 'Center Of Gravity' defuzzification method
 		DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
 	END_DEFUZZIFY
 	
-	
-	// TODO: break this out into 3 seperate rulesets for:
-	// poor; good; excellent
+	// Used a bruteforce apprach with AND to do this rule set
+	// This approach allowed me to cover all possible routes
 	RULEBLOCK No1
 		AND : MIN;	// Use 'min' for 'and'
 		ACT : MIN;	// Use 'min' activation method
 		ACCU : MAX;	// Use 'max' accumulation method
 		
-		// Ruleset A [POOR-GOOD] --> Start at title
-		// where title is always poor
-		RULE 1 : IF title IS poor AND headings IS poor AND body IS poor THEN score IS poor;
-		RULE 2 : IF title IS poor AND headings IS poor AND body IS excellent THEN score IS poor;
-		RULE 3 : IF title IS poor AND headings IS good AND body IS poor THEN score IS poor;
-		RULE 4 : IF title IS poor AND headings IS good AND body IS excellent THEN score IS good;
-		RULE 5 : IF title IS poor AND headings IS excellent AND body IS poor THEN score IS good;
-		RULE 6 : IF title IS poor AND headings IS excellent AND body IS excellent THEN score IS good;
+		// Where title is irrelevant
+		RULE 1 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS low;
+		RULE 2 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS low;
+		RULE 3 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS low;
+		RULE 4 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS relevant THEN score IS low;
+		RULE 5 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS low;
+		RULE 6 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS low;
+		RULE 7 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS low;
+		RULE 8 : IF title IS irrelevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS relevant THEN score IS low;
+		RULE 9 : IF title IS irrelevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 10 : IF title IS irrelevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS medium;
+		RULE 11 : IF title IS irrelevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 12 : IF title IS irrelevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS relevant THEN score IS medium;
+		RULE 13 : IF title IS irrelevant AND h1 IS relevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 14 : IF title IS irrelevant AND h1 IS relevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS medium;
+		RULE 15 : IF title IS irrelevant AND h1 IS relevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 16 : IF title IS irrelevant AND h1 IS relevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS relevant THEN score IS medium;
 		
-		// Ruleset [GOOD] --> Start at title
-		// where title is always good
-		RULE 7 : IF title IS good AND headings IS poor AND body IS poor THEN score IS good;
-		RULE 8 : IF title IS good AND headings IS poor AND body IS excellent THEN score IS good;
-		RULE 9 : IF title IS good AND headings IS good AND body IS poor THEN score IS good;
-		RULE 10 : IF title IS good AND headings IS good AND body IS excellent THEN score IS good;
-		RULE 11 : IF title IS good AND headings IS excellent AND body IS poor THEN score IS excellent;
-		RULE 12 : IF title IS good AND headings IS excellent AND body IS excellent THEN score IS excellent;
+		// Where title is relevant
+		RULE 17 : IF title IS relevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 18 : IF title IS relevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS medium;
+		RULE 19 : IF title IS relevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 20 : IF title IS relevant AND h1 IS irrelevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS relevant THEN score IS medium;
+		RULE 21 : IF title IS relevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 22 : IF title IS relevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS medium;
+		RULE 23 : IF title IS relevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS medium;
+		RULE 24 : IF title IS relevant AND h1 IS irrelevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS relevant THEN score IS medium;
+		RULE 25 : IF title IS relevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS high;
+		RULE 26 : IF title IS relevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS high;
+		RULE 27 : IF title IS relevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS high;
+		RULE 28 : IF title IS relevant AND h1 IS relevant AND h2 IS irrelevant AND h3 IS relevant AND paragraph IS relevant THEN score IS high;
+		RULE 29 : IF title IS relevant AND h1 IS relevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS irrelevant THEN score IS high;
+		RULE 30 : IF title IS relevant AND h1 IS relevant AND h2 IS relevant AND h3 IS irrelevant AND paragraph IS relevant THEN score IS high;
+		RULE 31 : IF title IS relevant AND h1 IS relevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS irrelevant THEN score IS high;
+		RULE 32 : IF title IS relevant AND h1 IS relevant AND h2 IS relevant AND h3 IS relevant AND paragraph IS relevant THEN score IS high;
 		
-		// Ruleset A [GOOD-EXCELLENT] --> Start at title
-		// where title is always good
-		RULE 13 : IF title IS excellent AND headings IS poor AND body IS poor THEN score IS good;
-		RULE 14 : IF title IS excellent AND headings IS poor AND body IS excellent THEN score IS good;
-		RULE 15 : IF title IS excellent AND headings IS good AND body IS poor THEN score IS excellent;
-		RULE 16 : IF title IS excellent AND headings IS good AND body IS excellent THEN score IS excellent;
-		RULE 17 : IF title IS excellent AND headings IS excellent AND body IS poor THEN score IS excellent;
-		RULE 18 : IF title IS excellent AND headings IS excellent AND body IS excellent THEN score IS excellent;	
 	END_RULEBLOCK
-	
 END_FUNCTION_BLOCK
 		
 		
